@@ -77,7 +77,7 @@
 ### 安装步骤
 
 ```bash
-git clone <这个仓库的地址>
+git clone https://github.com/Obliv1onis/sakiko-bot.git
 cd sakiko-bot
 npm install
 ```
