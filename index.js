@@ -203,7 +203,7 @@ const SYSTEM_MESSAGES = {
     onlineOn: 'オンラインチャットモードに切り替えましたわ。',
     onlineOff: '現実会話モードに切り替えましたわ。',
     langSwitchedToJp: '言語を日本語に切り替えましたわ。',
-    langSwitchedToCn: '中国語モードに切り替えましたわ。',
+    langSwitchedToCn: '已切换至中文模式desuwa。',
     roleRecognized: (nameJp) => `もう見抜いておりますわ、${nameJp}…ですわ`,
     renamed: (newName) => `かしこまりましたわ、私の名前は${newName}に変更いたしましたわ`,
   },
