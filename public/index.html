@@ -91,7 +91,16 @@
     padding: 16px;
     margin-bottom: 14px;
     box-shadow: var(--shadow);
+    transition: background 0.3s ease, border-color 0.3s ease;
   }
+
+  /* 深夜人格生效时，状态卡片带上一点幽暗蓝/暗紫的夜色调，提醒现在是大管家的深夜时间 */
+  .side-card.night-mode {
+    background: linear-gradient(135deg, rgba(59, 61, 173, 0.12), rgba(107, 60, 196, 0.12));
+    border-color: rgba(91, 60, 196, 0.35);
+  }
+  .side-card.night-mode .side-label { color: #6b3cc4; }
+  .side-card.night-mode .stat-value { color: #3d3d9e; }
 
   .side-label {
     font-size: 11px;
@@ -460,6 +469,16 @@
       </div>
     </div>
 
+    <div class="side-card" id="personaCard">
+      <div class="side-label">当前人格</div>
+      <div class="stat-value" id="personaName" style="font-size: 18px; margin-bottom: 10px;">–</div>
+      <select id="personaSelect" class="side-input">
+        <option value="auto">自动（按时间切换）</option>
+        <option value="day">强制白天 · 统领模式</option>
+        <option value="night">强制深夜 · 深夜反思</option>
+      </select>
+    </div>
+
     <div class="side-card">
       <div class="side-label">已交互用户总数</div>
       <div class="stat-value" id="knownUserCount">–</div>
@@ -523,6 +542,14 @@
   const knownUserCountEl = document.getElementById('knownUserCount');
   const meltdownCountEl = document.getElementById('meltdownCount');
   const meltdownListEl = document.getElementById('meltdownList');
+  const personaNameEl = document.getElementById('personaName');
+  const personaSelectEl = document.getElementById('personaSelect');
+  const personaCardEl = document.getElementById('personaCard');
+  const NIGHT_PERSONA_NAME = '深夜反思'; // 需与后端 PERSONAS.NIGHT.name 保持一致
+
+  function applyPersonaVisual(currentPersona) {
+    personaCardEl.classList.toggle('night-mode', currentPersona === NIGHT_PERSONA_NAME);
+  }
 
   function pad(n) { return String(n).padStart(2, '0'); }
   function fmtTime(ts) {
@@ -614,6 +641,14 @@
 
       knownUserCountEl.textContent = data.knownUserCount ?? 0;
       meltdownCountEl.textContent = (data.meltdownUsers || []).length;
+
+      if (data.currentPersona) {
+        personaNameEl.textContent = data.currentPersona;
+        applyPersonaVisual(data.currentPersona);
+      }
+      if (data.personaOverride && document.activeElement !== personaSelectEl) {
+        personaSelectEl.value = data.personaOverride;
+      }
 
       meltdownListEl.innerHTML = '';
       if (!data.meltdownUsers || data.meltdownUsers.length === 0) {
@@ -747,6 +782,25 @@
   wiretapBtn.addEventListener('click', queryWiretap);
   wiretapIdInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') queryWiretap();
+  });
+
+  // ---------- 动态人格切换：手动锁定白天/深夜人格，或者切回按时间自动判断 ----------
+  personaSelectEl.addEventListener('change', async () => {
+    const mode = personaSelectEl.value;
+    try {
+      const res = await fetch('/api/set-persona', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode }),
+      });
+      const data = await res.json();
+      if (data.currentPersona) {
+        personaNameEl.textContent = data.currentPersona;
+        applyPersonaVisual(data.currentPersona);
+      }
+    } catch (err) {
+      console.error('切换人格失败', err);
+    }
   });
 
   connectStream();

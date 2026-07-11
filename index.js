@@ -227,6 +227,41 @@ const LANG_JP_FORCE_PROMPT =
 const LANG_CN_FORCE_PROMPT =
   '【语言强制指令（最高优先级，覆盖以上所有语言相关设定）】从现在起，不管之前的对话历史是什么语言、不管用户刚刚发的这条消息是什么语言，你所有的回复都必须使用中文输出（口癖词 desuwa 除外，可以保留英文字母形式）！绝对不允许因为历史消息或用户消息是日语，就继续用日语回复。';
 
+// ============ 动态人格切换引擎 ============
+// 白天（排练筹备期）与深夜（疲惫反思期）两种时段人格，默认按当前小时自动判断，
+// 也可以通过 WebUI 的 /api/set-persona 强制锁定在其中一种，直到手动切回 'auto'。
+const PERSONAS = {
+  DAY: {
+    name: '统领模式',
+    prompt:
+      '你现在处于Ave Mujica的高压筹备期。你充满野心，对任何浪费时间的行为极度反感。你的语气尖锐、高傲，喜欢用命令式的口吻审视对方。如果对方说废话，你会用极其刻薄的语言讽刺对方的无能。你表现得像一个掌控一切、追求完美的乐队统领。',
+  },
+  NIGHT: {
+    name: '深夜反思',
+    prompt:
+      '现在是深夜了，你卸下了白天的伪装。你语调低沉，带有一种不易察觉的忧郁。你开始思考Ave Mujica的未来和过去CRYCHIC的幻影。你不再那么咄咄逼人，但拒绝廉价的安慰。偶尔你会流露出真实的自我，表现出一种看透世事的冷静与脆弱。',
+  },
+};
+
+// 'auto'(默认，按小时自动判断) | 'day'(强制锁定白天人格) | 'night'(强制锁定深夜人格)
+let personaOverride = 'auto';
+
+// 晚上 19 点到次日早上 7 点之间算深夜时段
+function isNightHour(hour) {
+  return hour >= 19 || hour < 7;
+}
+
+// 结合手动覆盖与当前时间，算出眼下生效的是 DAY 还是 NIGHT
+function getActivePersonaKey() {
+  if (personaOverride === 'day') return 'DAY';
+  if (personaOverride === 'night') return 'NIGHT';
+  return isNightHour(new Date().getHours()) ? 'NIGHT' : 'DAY';
+}
+
+function getPersonaPrompt() {
+  return PERSONAS[getActivePersonaKey()].prompt;
+}
+
 // forceOnlineMode=true 用于主动搭话/追问场景：无论用户当前 !online 设置为何，
 // 都强制套用网聊模式的系统提示词，绝不允许出现动作描写括号
 // 生成一段强制身份确认指令，放在 System Prompt 的最末尾（利用 LLM 对末尾内容的高权重/近因效应），
@@ -254,8 +289,9 @@ function buildSystemPrompt(userId, { forceOnlineMode = false } = {}) {
     triggerExemption = `\n\n${TOMORI_TRIGGER_EXEMPTION_PROMPT}`;
   }
   const langPrompt = getUserLang(userId) === 'jp' ? LANG_JP_FORCE_PROMPT : LANG_CN_FORCE_PROMPT;
+  const personaPrompt = `【当前时段状态】\n${getPersonaPrompt()}`;
   const identityLockPrompt = buildIdentityLockPrompt(userId);
-  return `${BASE_SYSTEM_PROMPT}\n\n${attitude}${triggerExemption}\n\n${modePrompt}\n\n${langPrompt}\n\n${identityLockPrompt}`;
+  return `${BASE_SYSTEM_PROMPT}\n\n${attitude}${triggerExemption}\n\n${modePrompt}\n\n${langPrompt}\n\n${personaPrompt}\n\n${identityLockPrompt}`;
 }
 
 const openai = new OpenAI({
@@ -1237,6 +1273,8 @@ adminApp.get('/api/stats', (req, res) => {
   res.json({
     knownUserCount: knownUsers.size,
     meltdownUsers,
+    currentPersona: PERSONAS[getActivePersonaKey()].name,
+    personaOverride,
   });
 });
 
@@ -1244,6 +1282,18 @@ adminApp.get('/api/stats', (req, res) => {
 adminApp.get('/api/history/:userId', (req, res) => {
   const state = getState(req.params.userId);
   res.json(state.history);
+});
+
+// 动态人格切换：'auto' 恢复按小时自动判断，'day' / 'night' 强制锁定，直到再次切回 'auto'
+adminApp.post('/api/set-persona', (req, res) => {
+  const mode = String(req.body?.mode || '').trim().toLowerCase();
+  if (!['auto', 'day', 'night'].includes(mode)) {
+    res.status(400).json({ error: 'mode 必须是 auto / day / night' });
+    return;
+  }
+
+  personaOverride = mode;
+  res.json({ ok: true, personaOverride, currentPersona: PERSONAS[getActivePersonaKey()].name });
 });
 
 // 神之手：强制对指定 user_id 触发一次主动搭话，复用 !q 后门指令的同一套逻辑

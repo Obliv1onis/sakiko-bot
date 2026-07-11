@@ -119,7 +119,7 @@ npm start
 | 指令 | 说明 |
 | --- | --- |
 | `!rename <名字>` | 修改祥子的QQ用户名 |
-| `!allowrestart 0/1` | 允许/禁止普通用户使用`!restart`指令 |
+| `!allowrestart 0/1` | 允许 / 禁止普通用户使用`!restart`指令 |
 
 ---
 
