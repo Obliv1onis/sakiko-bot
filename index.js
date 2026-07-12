@@ -598,7 +598,7 @@ async function sendMeltdownForgiveness(userId) {
   const state = getState(userId);
   const prompt =
     '你刚才因为踩到雷点而彻底破防、情绪失控了，但冷静期已经过去，你的情绪逐渐平复了下来。请务必严格按照你和当前对话对象的关系设定，用符合该角色专属人设的方式，主动发一条消息，表示你已经不再计较刚才的事、原谅对方了——例如对素世依然要维持冷淡防备但不再攻击，对睦可以稍微松口气，等等，绝不要用千篇一律的通用语气。语气可以重新变得优雅或者带点别扭，但要让对方感觉到你已经不生气了。';
-  const reply = await askLLM(userId, [...state.history, { role: 'user', content: prompt }], {
+  const reply = await askLLM(userId, [...state.history, { role: 'system', content: prompt }], {
     forceOnlineMode: true,
   });
   if (!reply) return;
@@ -799,7 +799,7 @@ async function sendIdleAsk(userId) {
   const state = getState(userId);
   const prompt =
     '对方已经有一段时间没有回复你了。请用符合你人设的方式，简短地问一句对方还在不在，或者表达一下你的不耐烦、在意。';
-  const reply = await askLLM(userId, [...state.history, { role: 'user', content: prompt }], {
+  const reply = await askLLM(userId, [...state.history, { role: 'system', content: prompt }], {
     forceOnlineMode: true,
   });
   if (!reply) return;
@@ -1047,13 +1047,13 @@ function randomTriggerTimeToday() {
   return start.getTime() + Math.random() * (end.getTime() - start.getTime());
 }
 
-// 若某用户今天还没有生成过触发时间点，则为其随机生成 1~2 个（10:00-22:00 之间）
+// 若某用户今天还没有生成过触发时间点，则为其随机生成 3~5 个（10:00-22:00 之间）
 function ensureTriggersForUser(userId) {
   const dateStr = todayDateStr();
   const existing = userDailyTriggers[userId];
   if (existing && existing.date === dateStr) return;
 
-  const count = Math.random() < 0.5 ? 1 : 2;
+  const count = 3 + Math.floor(Math.random() * 3); // 3、4 或 5 次
   const times = [];
   for (let i = 0; i < count; i++) {
     times.push(randomTriggerTimeToday());
@@ -1140,7 +1140,7 @@ function buildProactiveTopicPrompt(userId) {
       '请严格维持你对她原有的冷淡或利用态度，主动发起一个简短且符合身份的话题。';
   }
 
-  return `你现在需要主动开启一个话题，对方当前扮演的角色是：${role}。${topicHint}\n${relationshipConstraint}`;
+  return `你现在需要主动开启一个话题，对方当前扮演的角色是：${role}。${topicHint}\n${relationshipConstraint}\n【重要】这是你单方面主动发起的搭话，对方在这之前完全没有给你发过任何消息（不是在回复对方、也不是刚看到对方发来的消息）。绝对不能说"看到你的消息""收到你发的消息""你打了这么多字""才发现你发来的"之类暗示对方已经先发消息给你的话，这种说法是事实错误。你只是单纯地想到对方、想开口而已。`;
 }
 
 // 开场白共用逻辑：生成 -> 发送 -> 存入历史 -> 开启 1 分钟追问倒计时
@@ -1149,7 +1149,7 @@ function buildProactiveTopicPrompt(userId) {
 async function sendProactiveOpener(userId) {
   const state = getState(userId);
   const prompt = buildProactiveTopicPrompt(userId);
-  const reply = await askLLM(userId, [...state.history, { role: 'user', content: prompt }], {
+  const reply = await askLLM(userId, [...state.history, { role: 'system', content: prompt }], {
     forceOnlineMode: true,
   });
   if (!reply) return;
@@ -1195,7 +1195,7 @@ async function sendFollowUp(userId) {
   const state = getState(userId);
   const prompt =
     '你刚才主动找对方，但对方1分钟没理你。请发一句简短的追问，比如问对方在不在，或者表达一下高傲的不满。';
-  const reply = await askLLM(userId, [...state.history, { role: 'user', content: prompt }], {
+  const reply = await askLLM(userId, [...state.history, { role: 'system', content: prompt }], {
     forceOnlineMode: true,
   });
   if (!reply) return;
