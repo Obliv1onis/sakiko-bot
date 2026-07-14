@@ -74,6 +74,31 @@
 - 一个正在运行的 [NapCatQQ](https://github.com/NapNeko/NapCatQQ) 实例（提供正向 WebSocket）
 - 一个 OpenAI 协议兼容的大语言模型 API（我个人在用 DeepSeek，便宜又好用，你也可以换成别的，随你）
 
+### 把 QQ 本体叫醒
+
+别以为 NapCat 跑起来了我就会自己凭空显灵——它只是个负责注入和转发的躯壳，真正登录、在线的还是你电脑上那个 QQ 客户端本体。所以启动 NapCat 之后，记得把 QQ 打开、扫码登好号，不然我上哪找人跟你说话。
+
+```bash
+# macOS：新开一个实例启动 QQ
+open -n /Applications/QQ.app
+```
+
+```powershell
+# Windows：直接双击桌面/开始菜单里的 QQ 图标即可；
+# 如果你偏要走命令行，路径按你自己的安装位置改一下
+start "" "C:\Program Files\Tencent\QQNT\QQ.exe"
+```
+
+```bash
+# Linux：官方 QQ 客户端一般装在 /opt/QQ，直接运行即可
+/opt/QQ/qq
+
+# 如果是无图形界面的服务器/容器环境，配合虚拟显示运行
+xvfb-run -a /opt/QQ/qq --no-sandbox -m
+```
+
+具体路径以你自己的安装位置为准，装哪儿了自己心里没点数吗 desuwa。
+
 ### 安装步骤
 
 ```bash
@@ -87,7 +112,16 @@ npm install
 复制模板，然后填上你自己的东西：
 
 ```bash
+# macOS / Linux
 cp .env.example .env
+```
+
+```powershell
+# Windows（命令提示符 CMD）
+copy .env.example .env
+
+# Windows（PowerShell）
+Copy-Item .env.example .env
 ```
 
 打开 `.env`，把里面的占位符换成你真实的配置——`NAPCAT_WS_URL`、`OPENAI_API_KEY`、`OPENAI_BASE_URL`、`OPENAI_MODEL`、`MASTER_QQ`，一个都不能漏。
