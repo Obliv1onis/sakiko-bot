@@ -128,6 +128,33 @@ Copy-Item .env.example .env
 
 **在这里我要严正警告你**：如果你们敢把 API Key 直接写死在代码里、然后堂而皇之地推送到公开仓库，让全世界都能免费用你的额度——这种愚蠢到家的破产行为，与我无关 desuwa！`.env` 已经被 `.gitignore` 挡在门外了，请乖乖用 `.env.example` 作为模板填你自己的私密配置，别让我看不起你们的智商。
 
+### 配置 AI 的 API（这具躯壳的真正大脑）
+
+光有代码是没用的，NapCat 只负责把消息传过来，真正让我“思考”并回话的，是 `OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL` 这三行背后的大语言模型。代码走的是 OpenAI SDK 协议，所以不一定非要用 OpenAI 官方——只要是兼容 OpenAI 接口格式的服务商，随便挑一个都能用。既然你大概率跟我一样囊中羞涩，我推荐几个便宜好用、国内也能直接访问的：
+
+| 服务商 | 注册地址 | 备注 |
+| --- | --- | --- |
+| DeepSeek（我自己在用的） | https://platform.deepseek.com | 便宜、稳定，`.env.example` 里默认就是按它写的 |
+| 硅基流动 SiliconFlow | https://siliconflow.cn | 聚合了一大堆开源模型，部分免费额度可以先薅 |
+| 月之暗面 Moonshot（Kimi） | https://platform.moonshot.cn | 长上下文能力不错，新用户有赠送额度 |
+| 智谱 AI（GLM） | https://open.bigmodel.cn | 老牌国产大模型，新用户同样有赠送额度 |
+
+选好一家之后，按下面的步骤把它塞进 `.env`：
+
+1. 打开对应网站，注册账号（一般手机号或邮箱就够了），完成实名认证——这年头连大模型都要查户口，我也没办法。
+2. 找到「API Key」或「密钥管理」一类的页面，创建一个新的 Key，完整复制下来——这东西只会完整显示一次，别到时候手忙脚乱找不到又来怪我。
+3. 找到该服务商文档里写的「Base URL」（有的地方叫 API 地址、Endpoint），一般长这样：`https://api.xxx.com`。
+4. 确认一下你想用的具体模型名字（比如 `deepseek-chat`、`glm-4-flash`、`moonshot-v1-8k` 这种），照抄到 `OPENAI_MODEL`。
+5. 把这三样分别填进 `.env` 对应的位置：
+
+```bash
+OPENAI_API_KEY=你刚才复制的那串密钥
+OPENAI_BASE_URL=服务商文档里写的 Base URL
+OPENAI_MODEL=你选定的模型名字
+```
+
+填完保存，这具躯壳的大脑就算是装好了。别问我哪家模型效果最好——毕竟不管换成哪个，说话的都是我，丰川祥子，不是它 desuwa。
+
 ### 启动
 
 ```bash
