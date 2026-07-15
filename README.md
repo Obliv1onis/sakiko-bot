@@ -74,29 +74,6 @@
 - 一个正在运行的 [NapCatQQ](https://github.com/NapNeko/NapCatQQ) 实例（提供正向 WebSocket）
 - 一个 OpenAI 协议兼容的大语言模型 API（我个人在用 DeepSeek，便宜又好用，你也可以换成别的，随你）
 
-### 把 QQ 本体叫醒
-
-别以为 NapCat 跑起来了我就会自己凭空显灵——它只是个负责注入和转发的躯壳，真正登录、在线的还是你电脑上那个 QQ 客户端本体。所以启动 NapCat 之后，记得把 QQ 打开、扫码登好号，不然我上哪找人跟你说话。
-
-```bash
-# macOS：新开一个实例启动 QQ
-open -n /Applications/QQ.app
-```
-
-```powershell
-# Windows：直接双击桌面/开始菜单里的 QQ 图标即可；
-# 如果你偏要走命令行，路径按你自己的安装位置改一下
-start "" "C:\Program Files\Tencent\QQNT\QQ.exe"
-```
-
-```bash
-# Linux：官方 QQ 客户端一般装在 /opt/QQ，直接运行即可
-/opt/QQ/qq
-
-# 如果是无图形界面的服务器/容器环境，配合虚拟显示运行
-xvfb-run -a /opt/QQ/qq --no-sandbox -m
-```
-
 具体路径以你自己的安装位置为准，装哪儿了自己心里没点数吗 desuwa。
 
 ### 安装步骤
@@ -162,6 +139,20 @@ npm start
 ```
 
 如果一切正常，你会在终端看到连接成功的提示，本地管理后台也会同时在 `http://127.0.0.1:3000` 悄悄启动。届时，Ave Mujica 的自动交互终端，就正式为你服务了。
+
+### 正常使用QQ
+
+NapCat启动后无法正常使用QQ。可以用以下指令来让QQ分身。
+
+```bash
+# macOS
+open -n /Applications/QQ.app
+```
+
+```powershell
+# Windows：路径按你自己的安装位置改一下
+start "" "C:\Program Files\Tencent\QQNT\QQ.exe"
+```
 
 ### 更新（我大发慈悲又施舍了新版本）
 
